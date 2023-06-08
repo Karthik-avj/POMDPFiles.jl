@@ -113,10 +113,10 @@ function read_pomdp(filename::AbstractString)
 
     for i in 1:length(lines)
         if length(lines[i]) > 0
-            if occursin(r"discount:", lines[i]) && lines[i][1] != '#'
+            if occursin(r"discount:", lines[i])
                 discount = parse(Float64, match(REGEX_FLOATING_POINT, lines[i]).match)
             end
-            if occursin(r"states:", lines[i]) && lines[i][1] != '#'
+            if occursin(r"states:", lines[i])
                 states = split(strip(lines[i]), ' ')
                 if length(states) > 2
                     num_states = length(states) - 1
@@ -126,7 +126,7 @@ function read_pomdp(filename::AbstractString)
                     states = collect(string(i) for i in 0:num_states-1)
                 end
             end
-            if occursin(r"actions:", lines[i]) && lines[i][1] != '#'
+            if occursin(r"actions:", lines[i])
                 actions = split(strip(lines[i]), ' ')
                 if length(actions) > 2
                     num_actions = length(actions) - 1
@@ -136,7 +136,7 @@ function read_pomdp(filename::AbstractString)
                     actions = collect(string(i) for i in 0:num_actions-1)
                 end
             end
-            if occursin(r"observations:", lines[i]) && lines[i][1] != '#'
+            if occursin(r"observations:", lines[i])
                 observations = split(strip(lines[i]), ' ')
                 if length(observations) > 2
                     num_observations = length(observations) - 1
@@ -202,16 +202,14 @@ function read_pomdp(filename::AbstractString)
         else
             for t in T_lines
                 l = t+1
-                id = findall(strip(lines[l]), "identity")
-                un = findall(strip(lines[l]), "uniform")
                 act = strip(split(lines[t], ':')[2])
                 i = findfirst(x->x==act, actions)
-                if length(id) > 0
+                if occursin("identity", lines[l])
                     for j in 1:num_states
                         T[j,i,j] = 1
                         l += 1
                     end
-                elseif length(un) > 0
+                elseif occursin("uniform", lines[l])
                     for j in 1:num_states
                         T[:,i,j] = ones(num_states)./num_states
                         l += 1
@@ -262,10 +260,9 @@ function read_pomdp(filename::AbstractString)
         else
             for t in O_lines
                 l = t+1
-                un = findall(strip(lines[l]), "uniform")
                 act = strip(split(lines[t], ':')[2])
                 if act == "*"
-                    if length(un) > 0
+                    if occursin("uniform", lines[l])
                         for j in 1:num_states
                             for i in 1:num_actions
                                 O[:,i,j] = ones(num_observations)./num_observations
